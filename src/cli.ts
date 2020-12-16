@@ -7,12 +7,12 @@ const argv = yargs
     alias: "candidates",
     demand: true,
     description: "JSON file containing candidates for languages to support",
-  })
+  }).string("candidatesFile")
   .option("githubToken", {
     alias: "token",
     demand: true,
     description: "The token to search with; usually GITHUB_TOKEN is sufficient",
-  })
+  }).string("githubToken")
   .option("whatIf", {
     demand: false,
     default: false,
@@ -23,7 +23,7 @@ const argv = yargs
 
 (async () => {
   try {
-    execute(argv.candidatesFile as string, argv.githubToken as string, argv.whatIf)
+    execute(argv.candidatesFile, argv.githubToken, argv.whatIf)
   } catch (e) {
     console.error(e);
     process.exit(1);
