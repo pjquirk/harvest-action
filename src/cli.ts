@@ -1,4 +1,5 @@
 // `require` is needed to get certain features of `yargs` to work correctly
+//const yargs = require("yargs")
 import * as yargs from "yargs";
 import { execute } from "./core"
 
