@@ -5,6 +5,9 @@ inputs:
   candidatesFile:
     required: true
     description: 'JSON file containing candidates for languages to support'
+  githubToken:
+    required: true
+    description: 'The token to search with; usually GITHUB_TOKEN is sufficient'
 runs:
   using: 'node12'
   main: 'dist/index.js'

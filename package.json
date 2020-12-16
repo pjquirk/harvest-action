@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "TypeScript template action",
-  "main": "lib/main.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write **/*.ts",
@@ -26,7 +26,8 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "@octokit/rest": "^18.0.12"
+    "@octokit/rest": "^18.0.12",
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
