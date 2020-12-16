@@ -1,11 +1,10 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'harvest'
+description: 'Collect usage statistics for languages for Linguist'
+author: 'pjquirk'
 inputs:
-  milliseconds: # change this
+  candidatesFile:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'JSON file containing candidates for languages to support'
 runs:
   using: 'node12'
   main: 'dist/index.js'
