@@ -10,7 +10,7 @@
       },
       {
         "extension": "csl",
-        "extendedSearch": "where"
+        "extendedSearch": "where+NOT+xml"
       }
     ]
   }
