@@ -159,7 +159,7 @@ function search(octokit, extension, sort, order, previousResults) {
                 order
             })), _c; _c = yield _b.next(), !_c.done;) {
                 const response = _c.value;
-                core.debug(`Got ${response.status} response with ${response.data.items.length} items (total_count of ${response.data.total_count}, incomplete? ${response.data.incomplete_results})`);
+                core.debug(`Got ${response.status} response with ${response.data.length} items`);
                 results = results.concat(response.data.map(code => {
                     return { htmlUrl: code.html_url, repoName: code.repository.full_name };
                 }));

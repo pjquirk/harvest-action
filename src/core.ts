@@ -117,7 +117,7 @@ async function search(
     order
   })) {
     core.debug(
-      `Got ${response.status} response with ${response.data.items.length} items (total_count of ${response.data.total_count}, incomplete? ${response.data.incomplete_results})`
+      `Got ${response.status} response with ${response.data.length} items`
     )
     results = results.concat(
       response.data.map(code => {
