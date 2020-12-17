@@ -1,9 +1,16 @@
 [
-    {
-        "extensions": [
-            {
-                "extension": "kql"
-            }
-        ]
-    }
+  {
+    "extensions": [
+      {
+        "extension": "kql"
+      },
+      {
+        "extension": "kusto"
+      },
+      {
+        "extension": "csl",
+        "extendedSearch": "where"
+      }
+    ]
+  }
 ]
