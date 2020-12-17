@@ -79,8 +79,8 @@ async function search(
   order?: 'desc' | 'asc',
   previousResults?: Record<string, Set<string>>
 ): Promise<Record<string, Set<string>>> {
-  const extendedSearch = extension.extendedSearch || 'NOT+nothack'
-  const query = `extension:${extension.extension}+${extendedSearch}`
+  const extendedSearch = extension.extendedSearch || 'NOT nothack'
+  const query = `extension:${extension.extension} ${extendedSearch}`
 
   type SearchResult = {
     htmlUrl: string
