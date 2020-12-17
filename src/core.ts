@@ -83,25 +83,23 @@ async function search(
   const query = `extension:${extension.extension}+${extendedSearch}`
 
   type SearchResult = {
-    htmlUrl: string,
+    htmlUrl: string
     repoName: string
   }
 
   core.info(`Searching for '${query}'...`)
   let results: SearchResult[] = []
-  for await (const response of octokit.paginate.iterator(
-    'GET /search/code',
-    {
-      q: query,
-      per_page: 100,
-      sort,
-      order
-    })
-  ) {
+  for await (const response of octokit.paginate.iterator('GET /search/code', {
+    q: query,
+    per_page: 100,
+    sort,
+    order
+  })) {
     results = results.concat(
       response.data.map(code => {
         return {htmlUrl: code.html_url, repoName: code.repository.full_name}
-      }))
+      })
+    )
     await wait(2000)
   }
 
