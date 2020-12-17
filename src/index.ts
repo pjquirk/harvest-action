@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { execute } from "./core"
+import {execute} from './core'
 
 async function run(): Promise<void> {
   try {
