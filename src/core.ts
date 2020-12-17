@@ -10,6 +10,7 @@ import {writeTable} from './tableWriter'
 
 export async function execute(
   candidatesFile: string,
+  outputFile: string,
   token: string,
   whatIf?: boolean
 ): Promise<void> {
@@ -78,7 +79,7 @@ export async function execute(
   }
 
   // Send it out to a markdown table
-  writeTable('data.md', results, whatIf)
+  writeTable(outputFile, results, whatIf)
 }
 
 // Returns a map of repositories and their matching files

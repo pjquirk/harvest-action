@@ -10,6 +10,13 @@ const argv = yargs
     description: 'JSON file containing candidates for languages to support'
   })
   .string('candidatesFile')
+  .option('outputFile', {
+    alias: 'output',
+    demand: true,
+    description: 'Path to the markdown file to write results to',
+    default: 'extensions.md'
+  })
+  .string('outputFile')
   .option('githubToken', {
     alias: 'token',
     demand: true,
@@ -26,7 +33,7 @@ const argv = yargs
 
 ;(async () => {
   try {
-    execute(argv.candidatesFile, argv.githubToken, argv.whatIf)
+    execute(argv.candidatesFile, argv.outputFile, argv.githubToken, argv.whatIf)
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(e)
