@@ -26,7 +26,7 @@ export async function execute(candidatesFile: string, token: string, whatIf?: bo
         let searchResults = await search(octokit, extension);
         const totalHits = countValues(searchResults)
         if (totalHits >= 100) {
-          core.info(`Found ${totalHits} >= 1000 hits, searching again by index time`)
+          core.info(`Found ${totalHits} >= 1000 hits (across ${Object.keys(searchResults).length} unique repositories), searching again by index time`)
           searchResults = await search(octokit, extension, 'indexed', 'desc', searchResults);
           searchResults = await search(octokit, extension, 'indexed', 'asc', searchResults);
         }
@@ -54,7 +54,10 @@ async function search(octokit: Octokit, extension: ExtensionInfo, sort?: 'indexe
     per_page: 100,
     sort: sort,
     order: order
-  }, (response) => response.data.map(code => { return { htmlUrl: code.html_url, repoName: code.repository.full_name }}))
+  }, (response) => {
+    wait(2000)
+    return response.data.map(code => { return { htmlUrl: code.html_url, repoName: code.repository.full_name }})
+  })
 
   if (!results) {
     core.error("Search failed to return anything")
@@ -79,4 +82,8 @@ function htmlUrlToRaw(url: URL): URL {
 
 function countValues(record: Record<string, Set<string>>): number {
   return Object.values(record).reduce((count, urls) => count + urls.size, 0)
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(() => resolve(), ms));
 }
