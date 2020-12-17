@@ -1,5 +1,6 @@
 [
   {
+    "pr": 4827,
     "extensions": [
       {
         "extension": "kql"
