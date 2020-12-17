@@ -90,26 +90,6 @@ async function search(
   core.info(`Searching for '${query}'...`)
   let results: SearchResult[] = []
 
-  // for (const i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
-  //   const response = await octokit.search.code({
-  //     q: query,
-  //     per_page: 100,
-  //     page: i,
-  //     sort,
-  //     order
-  //   })
-
-  //   core.debug(
-  //     `Got ${response.status} response with ${response.data.items.length} items (total_count of ${response.data.total_count}, incomplete? ${response.data.incomplete_results})`
-  //   )
-  //   results = results.concat(
-  //     response.data.items.map(code => {
-  //       return {htmlUrl: code.html_url, repoName: code.repository.full_name}
-  //     })
-  //   )
-  //   await wait(2000)
-  // }
-
   for await (const response of octokit.paginate.iterator('GET /search/code', {
     q: query,
     per_page: 100,
