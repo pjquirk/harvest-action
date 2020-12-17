@@ -6,13 +6,15 @@ export interface Candidate {
 export interface ExtensionInfo {
   extension: string
   extendedSearch?: string
+  query: string
 }
 
 export interface CandidateSearchResults {
+  candidate: Candidate
   extensionResults: ExtensionSearchResults[]
 }
 export interface ExtensionSearchResults {
-  extension: string
+  extension: ExtensionInfo
   hits: number
   uniqueRepos: number
   timestamp: Date

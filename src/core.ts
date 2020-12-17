@@ -34,6 +34,7 @@ export async function execute(
   for (const candidate of candidates) {
     core.info(`Getting hit information for PR #${candidate.pr}...`)
     const candidateResults: CandidateSearchResults = {
+      candidate,
       extensionResults: []
     }
     for (const extension of candidate.extensions) {
@@ -62,8 +63,8 @@ export async function execute(
       }
 
       const extensionResult: ExtensionSearchResults = {
+        extension,
         timestamp: new Date(),
-        extension: extension.extension,
         hits: countValues(searchResults),
         uniqueRepos: Object.keys(searchResults).length
       }
@@ -91,18 +92,18 @@ async function search(
   previousResults?: Record<string, Set<string>>
 ): Promise<Record<string, Set<string>>> {
   const extendedSearch = extension.extendedSearch || 'NOT+nothack'
-  const query = `extension:${extension.extension}+${extendedSearch}`
+  extension.query = `extension:${extension.extension}+${extendedSearch}`
 
   type SearchResult = {
     htmlUrl: string
     repoName: string
   }
 
-  core.info(`Searching for '${query}'...`)
+  core.info(`Searching for '${extension.query}'...`)
   let results: SearchResult[] = []
 
   for await (const response of octokit.paginate.iterator('GET /search/code', {
-    q: query,
+    q: extension.query,
     per_page: 100,
     sort,
     order
