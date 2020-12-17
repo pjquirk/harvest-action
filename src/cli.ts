@@ -28,6 +28,7 @@ const argv = yargs
   try {
     execute(argv.candidatesFile, argv.githubToken, argv.whatIf)
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error(e)
     process.exit(1)
   }

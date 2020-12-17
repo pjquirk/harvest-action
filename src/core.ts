@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/rest'
-import {Url} from 'url'
 import {readCandidates} from './candidatesReader'
 import {
   CandidateSearchResults,
@@ -15,9 +14,13 @@ export async function execute(
 ): Promise<void> {
   const octokit = new Octokit({auth: token})
 
+  if (whatIf) {
+    core.info('whatIf enabled')
+  }
+
   core.info(`Loading candidates from ${candidatesFile} ...`)
   const candidates = readCandidates(candidatesFile)
-  if (!candidates || candidates.length == 0) {
+  if (!candidates || candidates.length === 0) {
     core.info('No candidates were found, nothing to do.')
     return
   }
@@ -108,19 +111,10 @@ async function search(
   }, previousResults || ({} as Record<string, Set<string>>))
 }
 
-function htmlUrlToRaw(url: URL): URL {
-  // Input:  https://github.com/Ivan-Marquez/tesla-monitor/blob/3efbba840cbb54737aac7419e6496753e42a99ea/scripts/kusto/daily_kwh.kql
-  // Output: https://raw.githubusercontent.com/Ivan-Marquez/tesla-monitor/3efbba840cbb54737aac7419e6496753e42a99ea/scripts/kusto/daily_kwh.kql
-
-  const match = /^((?:\/[^/]+){2})\/blob(?=\/)/gim
-  const newPath = url.pathname.replace(match, '$1')
-  return new URL(newPath, 'https://raw.githubusercontent.com')
-}
-
 function countValues(record: Record<string, Set<string>>): number {
   return Object.values(record).reduce((count, urls) => count + urls.size, 0)
 }
 
-function wait(ms: number): Promise<void> {
+async function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(() => resolve(), ms))
 }
