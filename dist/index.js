@@ -129,7 +129,7 @@ exports.execute = execute;
 function search(octokit, extension, sort, order, previousResults) {
     var e_1, _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const extendedSearch = extension.extendedSearch || 'NOT nothack';
+        const extendedSearch = extension.extendedSearch || 'NOT+nothack';
         const query = `extension:${extension.extension}+${extendedSearch}`;
         core.info(`Searching for '${query}'...`);
         let results = [];
