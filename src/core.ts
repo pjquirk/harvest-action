@@ -6,6 +6,7 @@ import {
   ExtensionInfo,
   ExtensionSearchResults
 } from './types'
+import {writeTable} from './tableWriter'
 
 export async function execute(
   candidatesFile: string,
@@ -26,12 +27,14 @@ export async function execute(
   }
   core.info(`Found ${candidates.length} candidates`)
 
-  const results: CandidateSearchResults = {
-    extensionResults: []
-  }
+  const results: CandidateSearchResults[] = []
 
+  // Get all the search results
   for (const candidate of candidates) {
     core.info(`Getting hit information for PR #${candidate.pr}...`)
+    const candidateResults: CandidateSearchResults = {
+      extensionResults: []
+    }
     for (const extension of candidate.extensions) {
       let searchResults = await search(octokit, extension)
       const totalHits = countValues(searchResults)
@@ -59,6 +62,7 @@ export async function execute(
 
       const extensionResult: ExtensionSearchResults = {
         timestamp: new Date(),
+        extension: extension.extension,
         hits: countValues(searchResults),
         uniqueRepos: Object.keys(searchResults).length
       }
@@ -66,12 +70,18 @@ export async function execute(
       core.info(
         `Found ${extensionResult.hits} total hits across ${extensionResult.uniqueRepos} unique repositories`
       )
-      results.extensionResults.push(extensionResult)
+
+      candidateResults.extensionResults.push(extensionResult)
     }
+
+    results.push(candidateResults)
   }
+
+  // Send it out to a markdown table
+  writeTable('data.md', results, whatIf)
 }
 
-// Returns a list of URLs to unique matches
+// Returns a map of repositories and their matching files
 async function search(
   octokit: Octokit,
   extension: ExtensionInfo,

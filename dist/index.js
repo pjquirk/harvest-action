@@ -87,6 +87,7 @@ exports.execute = void 0;
 const core = __importStar(__webpack_require__(186));
 const rest_1 = __webpack_require__(375);
 const candidatesReader_1 = __webpack_require__(860);
+const tableWriter_1 = __webpack_require__(288);
 function execute(candidatesFile, token, whatIf) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: token });
@@ -100,11 +101,13 @@ function execute(candidatesFile, token, whatIf) {
             return;
         }
         core.info(`Found ${candidates.length} candidates`);
-        const results = {
-            extensionResults: []
-        };
+        const results = [];
+        // Get all the search results
         for (const candidate of candidates) {
             core.info(`Getting hit information for PR #${candidate.pr}...`);
+            const candidateResults = {
+                extensionResults: []
+            };
             for (const extension of candidate.extensions) {
                 let searchResults = yield search(octokit, extension);
                 const totalHits = countValues(searchResults);
@@ -115,17 +118,21 @@ function execute(candidatesFile, token, whatIf) {
                 }
                 const extensionResult = {
                     timestamp: new Date(),
+                    extension: extension.extension,
                     hits: countValues(searchResults),
                     uniqueRepos: Object.keys(searchResults).length
                 };
                 core.info(`Found ${extensionResult.hits} total hits across ${extensionResult.uniqueRepos} unique repositories`);
-                results.extensionResults.push(extensionResult);
+                candidateResults.extensionResults.push(extensionResult);
             }
+            results.push(candidateResults);
         }
+        // Send it out to a markdown table
+        tableWriter_1.writeTable('data.md', results, whatIf);
     });
 }
 exports.execute = execute;
-// Returns a list of URLs to unique matches
+// Returns a map of repositories and their matching files
 function search(octokit, extension, sort, order, previousResults) {
     var e_1, _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -134,24 +141,6 @@ function search(octokit, extension, sort, order, previousResults) {
         core.info(`Searching for '${query}'...`);
         let results = [];
         try {
-            // for (const i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
-            //   const response = await octokit.search.code({
-            //     q: query,
-            //     per_page: 100,
-            //     page: i,
-            //     sort,
-            //     order
-            //   })
-            //   core.debug(
-            //     `Got ${response.status} response with ${response.data.items.length} items (total_count of ${response.data.total_count}, incomplete? ${response.data.incomplete_results})`
-            //   )
-            //   results = results.concat(
-            //     response.data.items.map(code => {
-            //       return {htmlUrl: code.html_url, repoName: code.repository.full_name}
-            //     })
-            //   )
-            //   await wait(2000)
-            // }
             for (var _b = __asyncValues(octokit.paginate.iterator('GET /search/code', {
                 q: query,
                 per_page: 100,
@@ -163,7 +152,7 @@ function search(octokit, extension, sort, order, previousResults) {
                 results = results.concat(response.data.map(code => {
                     return { htmlUrl: code.html_url, repoName: code.repository.full_name };
                 }));
-                yield wait(2000);
+                yield wait(3000);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -247,6 +236,73 @@ function run() {
 }
 run();
 //# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 288:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.writeTable = void 0;
+const fs = __importStar(__webpack_require__(747));
+const core = __importStar(__webpack_require__(186));
+function writeTable(outputPath, results, whatIf) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Write a new file each time
+        if (!whatIf && fs.existsSync(outputPath)) {
+            fs.unlinkSync(outputPath);
+        }
+        let fileContents = '| Extension | Total Hits | Unique Repositories |\n' +
+            '| --- | --- | --- |\n';
+        for (const result of results) {
+            for (const extensionResult of result.extensionResults) {
+                const cells = [
+                    extensionResult.extension,
+                    extensionResult.hits,
+                    extensionResult.uniqueRepos
+                ];
+                fileContents += `${cells.join(' | ')}\n`;
+            }
+        }
+        fileContents += "_Generated by a tool_";
+        core.debug(fileContents);
+        if (!whatIf) {
+            fs.writeFileSync(outputPath, fileContents);
+        }
+    });
+}
+exports.writeTable = writeTable;
+//# sourceMappingURL=tableWriter.js.map
 
 /***/ }),
 
