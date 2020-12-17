@@ -75,6 +75,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.execute = void 0;
 const core = __importStar(__webpack_require__(186));
@@ -83,10 +90,13 @@ const candidatesReader_1 = __webpack_require__(860);
 function execute(candidatesFile, token, whatIf) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: token });
+        if (whatIf) {
+            core.info('whatIf enabled');
+        }
         core.info(`Loading candidates from ${candidatesFile} ...`);
         const candidates = candidatesReader_1.readCandidates(candidatesFile);
-        if (!candidates || candidates.length == 0) {
-            core.info("No candidates were found, nothing to do.");
+        if (!candidates || candidates.length === 0) {
+            core.info('No candidates were found, nothing to do.');
             return;
         }
         core.info(`Found ${candidates.length} candidates`);
@@ -99,7 +109,7 @@ function execute(candidatesFile, token, whatIf) {
                 let searchResults = yield search(octokit, extension);
                 const totalHits = countValues(searchResults);
                 if (totalHits >= 100) {
-                    core.info(`Found ${totalHits} >= 1000 hits, searching again by index time`);
+                    core.info(`Found ${totalHits} >= 1000 hits (across ${Object.keys(searchResults).length} unique repositories), searching again by index time`);
                     searchResults = yield search(octokit, extension, 'indexed', 'desc', searchResults);
                     searchResults = yield search(octokit, extension, 'indexed', 'asc', searchResults);
                 }
@@ -117,18 +127,35 @@ function execute(candidatesFile, token, whatIf) {
 exports.execute = execute;
 // Returns a list of URLs to unique matches
 function search(octokit, extension, sort, order, previousResults) {
+    var e_1, _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const extendedSearch = extension.extendedSearch || "NOT nothack";
+        const extendedSearch = extension.extendedSearch || 'NOT nothack';
         const query = `extension:${extension.extension}+${extendedSearch}`;
         core.info(`Searching for '${query}'...`);
-        const results = yield octokit.paginate("GET /search/code", {
-            q: query,
-            per_page: 100,
-            sort: sort,
-            order: order
-        }, (response) => response.data.map(code => { return { htmlUrl: code.html_url, repoName: code.repository.full_name }; }));
+        let results = [];
+        try {
+            for (var _b = __asyncValues(octokit.paginate.iterator('GET /search/code', {
+                q: query,
+                per_page: 100,
+                sort,
+                order
+            })), _c; _c = yield _b.next(), !_c.done;) {
+                const response = _c.value;
+                results = results.concat(response.data.map(code => {
+                    return { htmlUrl: code.html_url, repoName: code.repository.full_name };
+                }));
+                yield wait(2000);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
         if (!results) {
-            core.error("Search failed to return anything");
+            core.error('Search failed to return anything');
             return {};
         }
         return results.reduce((hash, repo) => {
@@ -138,15 +165,14 @@ function search(octokit, extension, sort, order, previousResults) {
         }, previousResults || {});
     });
 }
-function htmlUrlToRaw(url) {
-    // Input:  https://github.com/Ivan-Marquez/tesla-monitor/blob/3efbba840cbb54737aac7419e6496753e42a99ea/scripts/kusto/daily_kwh.kql
-    // Output: https://raw.githubusercontent.com/Ivan-Marquez/tesla-monitor/3efbba840cbb54737aac7419e6496753e42a99ea/scripts/kusto/daily_kwh.kql
-    const match = /^((?:\/[^/]+){2})\/blob(?=\/)/gmi;
-    const newPath = url.pathname.replace(match, "$1");
-    return new URL(newPath, "https://raw.githubusercontent.com");
-}
 function countValues(record) {
     return Object.values(record).reduce((count, urls) => count + urls.size, 0);
+}
+function wait(ms) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.debug(`Sleeping ${ms} ms`);
+        return new Promise(resolve => setTimeout(() => resolve(), ms));
+    });
 }
 //# sourceMappingURL=core.js.map
 
