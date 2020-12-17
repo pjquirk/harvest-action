@@ -104,7 +104,7 @@ async function search(
         return {htmlUrl: code.html_url, repoName: code.repository.full_name}
       })
     )
-    await wait(2000)
+    await wait(3000)
   }
 
   if (!results) {
