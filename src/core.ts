@@ -95,6 +95,9 @@ async function search(
     sort,
     order
   })) {
+    core.debug(
+      `Got ${response.status} response with ${response.data.length} items`
+    )
     results = results.concat(
       response.data.map(code => {
         return {htmlUrl: code.html_url, repoName: code.repository.full_name}
