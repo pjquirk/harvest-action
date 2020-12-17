@@ -14,5 +14,5 @@ jobs:
       - uses: ./
         name: Run a multi-line script
         with:
-          githubToken: ${{ github.token }}
+          githubToken: ${{ secrets.MY_TOKEN }}
           candidatesFile: ./candidates.json
