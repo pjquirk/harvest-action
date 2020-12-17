@@ -82,22 +82,28 @@ async function search(
   const extendedSearch = extension.extendedSearch || 'NOT nothack'
   const query = `extension:${extension.extension}+${extendedSearch}`
 
+  type SearchResult = {
+    htmlUrl: string,
+    repoName: string
+  }
+
   core.info(`Searching for '${query}'...`)
-  const results = await octokit.paginate(
+  let results: SearchResult[] = []
+  for await (const response of octokit.paginate.iterator(
     'GET /search/code',
     {
       q: query,
       per_page: 100,
       sort,
       order
-    },
-    response => {
-      wait(2000)
-      return response.data.map(code => {
+    })
+  ) {
+    results = results.concat(
+      response.data.map(code => {
         return {htmlUrl: code.html_url, repoName: code.repository.full_name}
-      })
-    }
-  )
+      }))
+    await wait(2000)
+  }
 
   if (!results) {
     core.error('Search failed to return anything')
@@ -116,5 +122,6 @@ function countValues(record: Record<string, Set<string>>): number {
 }
 
 async function wait(ms: number): Promise<void> {
+  core.debug(`Sleeping ${ms} ms`)
   return new Promise(resolve => setTimeout(() => resolve(), ms))
 }
